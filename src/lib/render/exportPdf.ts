@@ -157,6 +157,19 @@ export async function composeA4Pdf(input: ComposeInput): Promise<Uint8Array> {
 
   // 2. Загружаем исходный PDF и берём нужную страницу.
   const src = await PDFDocument.load(sourcePdfBytes);
+
+  // 2a. ВАЖНО: данные бланка (отправитель, получатель, вложения, галочки) хранятся
+  // в полях формы AcroForm, а embedPage копирует только контент страницы БЕЗ полей.
+  // flatten запекает значения полей в контент страницы, сохраняя их оригинальный
+  // внешний вид (updateFieldAppearances: false — без перегенерации, чтобы не терять
+  // кириллицу и точное расположение). Без этого экспортированный бланк выходит пустым.
+  try {
+    const form = src.getForm();
+    form.flatten({ updateFieldAppearances: false });
+  } catch {
+    // PDF без формы — просто пропускаем.
+  }
+
   const srcPage = src.getPage(formRegion.pageIndex);
 
   // 3. Встраиваем область бланка как вектор (обрезка left/bottom/right/top, pt).
