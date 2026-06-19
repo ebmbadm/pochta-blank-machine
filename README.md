@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Бланк-машина — переверстка бланков Почты России
 
-## Getting Started
+Веб-приложение (Next.js, вся обработка в браузере): загружаете PDF-бланк с pochta.ru
+и переверстываете его на лист A4 — меняете размер бланка под посылку, добавляете
+дополнительные штрих-коды разных размеров, дату печати и поле для даты отправки,
+затем экспортируете готовый к печати PDF.
 
-First, run the development server:
+Бланк воспроизводится **один в один** с оригиналом: используется его собственная
+векторная графика из загруженного PDF (а не перерисовка), поэтому все надписи и
+разметка идентичны, а масштабирование — без потери качества.
+
+## Возможности
+
+- Загрузка PDF-бланка (drag & drop), автоматический разбор: область бланка и трек-номер (S10) извлекаются сами.
+- Размер бланка: пресеты «маленькая / средняя / большая посылка» + точная настройка (слайдер/мм) и перетаскивание по листу.
+- Дополнительные копии трек-штрих-кода (Code 128) разных размеров — для оклейки сторон посылки.
+- Дата печати (проставляется автоматически) и поле «дата отправки» для заполнения от руки.
+- Экспорт A4 PDF и печать. Данные не покидают браузер.
+
+## Запуск
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Команды
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` — режим разработки
+- `npm run build` — продакшн-сборка
+- `npm run test` — юнит/интеграционные тесты (vitest)
+- `npm run typecheck` — проверка типов
 
-## Learn More
+## Стек
 
-To learn more about Next.js, take a look at the following resources:
+Next.js (App Router) · TypeScript · Tailwind v4 · shadcn/ui · `pdfjs-dist` (рендер/текст) ·
+`pdf-lib` + `@pdf-lib/fontkit` (сборка PDF, встраивание области бланка как вектора и
+кириллического шрифта) · `bwip-js` (штрих-коды).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Архитектура (кратко)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/lib/units.ts` — единицы (мм/pt/px), A4.
+- `src/lib/layout/` — модель раскладки `LayoutModel` и пресеты.
+- `src/lib/pdf/` — загрузка PDF (`loadPdf`), поиск области бланка (`detectFormRegion`), извлечение трек-номера (`extractTracking`).
+- `src/lib/barcode/generateBarcode.ts` — генерация Code 128.
+- `src/lib/render/exportPdf.ts` — сборка итогового A4 PDF (переиспользование вектора бланка + наложение элементов).
+- `src/state/useEditorState.ts` — связка всех модулей.
+- `src/components/` — `UploadDropzone`, `ControlsPanel`, `PreviewCanvas`, `AppHeader`.
 
-## Deploy on Vercel
+Полный дизайн-документ: [`docs/superpowers/specs/2026-06-19-pochta-blank-editor-design.md`](docs/superpowers/specs/2026-06-19-pochta-blank-editor-design.md).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Заметки по реализации
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `public/pdf.worker.min.mjs` — worker pdf.js, скопирован из `node_modules/pdfjs-dist/build`
+  той же версии (надёжнее, чем resolve через `import.meta.url` в Turbopack).
+- Рендер pdf.js вызывается с `intent: "print"` — иначе в скрытой/фоновой вкладке
+  рендер зависает (режим "display" продолжается через `requestAnimationFrame`, который
+  в фоне не вызывается).
+- Подписи дат в PDF рисуются встроенным шрифтом DejaVu Sans (`public/fonts/`), т.к.
+  стандартные шрифты pdf-lib не поддерживают кириллицу.

@@ -1,26 +1,253 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Эстетика «Почтовая точность» (postal / customs precision):
+  тёплая бумага, почтовый синий, штемпельный вермильон, машинная моноширь.
+*/
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-golos), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-heading: var(--font-golos), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-golos), sans-serif;
+
+  /* фирменные цвета */
+  --color-postal-blue: var(--postal-blue);
+  --color-postal-red: var(--postal-red);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+
+  /* фирменная палитра */
+  --paper: oklch(0.985 0.008 85);
+  --ink: oklch(0.205 0.012 264);
+  --postal-blue: oklch(0.45 0.15 256);
+  --postal-red: oklch(0.56 0.214 26);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(0.997 0.004 85);
+  --card-foreground: var(--ink);
+  --popover: oklch(0.997 0.004 85);
+  --popover-foreground: var(--ink);
+  --primary: var(--postal-blue);
+  --primary-foreground: oklch(0.985 0.006 85);
+  --secondary: oklch(0.952 0.01 85);
+  --secondary-foreground: oklch(0.305 0.02 256);
+  --muted: oklch(0.952 0.01 85);
+  --muted-foreground: oklch(0.515 0.018 262);
+  --accent: oklch(0.93 0.03 252);
+  --accent-foreground: var(--postal-blue);
+  --destructive: var(--postal-red);
+  --border: oklch(0.895 0.012 80);
+  --input: oklch(0.895 0.012 80);
+  --ring: var(--postal-blue);
+  --chart-1: var(--postal-blue);
+  --chart-2: var(--postal-red);
+  --chart-3: oklch(0.6 0.05 256);
+  --chart-4: oklch(0.7 0.04 80);
+  --chart-5: oklch(0.45 0.02 262);
+  --sidebar: oklch(0.97 0.01 85);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--postal-blue);
+  --sidebar-primary-foreground: oklch(0.985 0.006 85);
+  --sidebar-accent: oklch(0.93 0.03 252);
+  --sidebar-accent-foreground: var(--postal-blue);
+  --sidebar-border: oklch(0.895 0.012 80);
+  --sidebar-ring: var(--postal-blue);
+}
+
+.dark {
+  --paper: oklch(0.205 0.012 264);
+  --ink: oklch(0.95 0.008 85);
+  --postal-blue: oklch(0.7 0.12 252);
+  --postal-red: oklch(0.68 0.19 26);
+
+  --background: oklch(0.17 0.012 264);
+  --foreground: var(--ink);
+  --card: oklch(0.225 0.013 264);
+  --card-foreground: var(--ink);
+  --popover: oklch(0.225 0.013 264);
+  --popover-foreground: var(--ink);
+  --primary: var(--postal-blue);
+  --primary-foreground: oklch(0.18 0.02 264);
+  --secondary: oklch(0.27 0.014 264);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.27 0.014 264);
+  --muted-foreground: oklch(0.7 0.02 262);
+  --accent: oklch(0.32 0.04 256);
+  --accent-foreground: oklch(0.92 0.02 252);
+  --destructive: var(--postal-red);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: var(--postal-blue);
+  --chart-1: var(--postal-blue);
+  --chart-2: var(--postal-red);
+  --chart-3: oklch(0.65 0.05 256);
+  --chart-4: oklch(0.75 0.04 80);
+  --chart-5: oklch(0.8 0.02 262);
+  --sidebar: oklch(0.2 0.012 264);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--postal-blue);
+  --sidebar-primary-foreground: oklch(0.18 0.02 264);
+  --sidebar-accent: oklch(0.32 0.04 256);
+  --sidebar-accent-foreground: oklch(0.92 0.02 252);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: var(--postal-blue);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv01";
+    /* едва заметная бумажная зернистость */
+    background-image:
+      radial-gradient(oklch(0.45 0.15 256 / 0.022) 1px, transparent 1px),
+      radial-gradient(oklch(0.56 0.214 26 / 0.018) 1px, transparent 1px);
+    background-size: 22px 22px, 22px 22px;
+    background-position: 0 0, 11px 11px;
+  }
+  html {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: oklch(0.56 0.214 26 / 0.22);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* авиапочтовая «перфорированная» сине-красная рамка */
+  .airmail-border {
+    position: relative;
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--postal-blue) 0,
+      var(--postal-blue) 10px,
+      transparent 10px,
+      transparent 20px,
+      var(--postal-red) 20px,
+      var(--postal-red) 30px,
+      transparent 30px,
+      transparent 40px
+    );
+  }
+
+  /* моноширинный «штемпельный» лейбл */
+  .stamp-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* регистрационные метки по углам панели */
+  .reg-marks {
+    position: relative;
+  }
+  .reg-marks::before,
+  .reg-marks::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--postal-blue);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .reg-marks::before {
+    top: 6px;
+    left: 6px;
+    border-top: 1.5px solid;
+    border-left: 1.5px solid;
+  }
+  .reg-marks::after {
+    bottom: 6px;
+    right: 6px;
+    border-bottom: 1.5px solid;
+    border-right: 1.5px solid;
+  }
+
+  /* «перфорация» — пунктир как у отрывного талона */
+  .perforation {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--border) 0,
+      var(--border) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+    height: 1px;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  /* ступенчатое появление */
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-rise {
+    animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }

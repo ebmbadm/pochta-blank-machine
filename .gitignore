@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# brainstorming artifacts
+.superpowers/
+
+# посторонний файл, не относится к проекту
+customer-flowchart.html
