@@ -19,7 +19,9 @@ rm -rf .git
 git init -q
 git checkout -q -b gh-pages
 git add -A
-git commit -q -m "Deploy static export"
+git -c user.name="${GIT_AUTHOR_NAME:-deploy-bot}" \
+    -c user.email="${GIT_AUTHOR_EMAIL:-deploy@local}" \
+    commit -q -m "Deploy static export"
 git remote add origin "$REPO_URL"
 git push -f -q origin gh-pages
 
