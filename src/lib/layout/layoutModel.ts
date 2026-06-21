@@ -8,6 +8,15 @@ import { A4 } from "@/lib/units";
 
 export type ParcelPreset = "S" | "M" | "L" | "custom";
 
+export type LabelPreset = "100x150" | "58x40" | "40x30" | "custom";
+
+/** Конфигурация термоэтикетки (размер рулона + выбранный пресет). */
+export interface LabelConfig {
+  preset: LabelPreset;
+  widthMm: number;
+  heightMm: number;
+}
+
 /** Прямоугольник на листе A4 (мм, верхний левый угол). */
 export interface RectMm {
   xMm: number;
@@ -74,6 +83,8 @@ export interface LayoutModel {
   printDate: PrintDateField;
   shipDate: ShipDateField;
   extraBarcodes: ExtraBarcodes;
+  /** Настройки печати штрих-кода на термоэтикетке. */
+  label: LabelConfig;
 }
 
 /** Соотношение сторон бланка (высота / ширина) из найденной области. */
@@ -118,5 +129,6 @@ export function createDefaultLayout(opts: CreateLayoutOptions = {}): LayoutModel
         { id: nextBarcodeId(), widthMm: 90, label: "L" },
       ],
     },
+    label: { preset: "58x40", widthMm: 58, heightMm: 40 },
   };
 }
