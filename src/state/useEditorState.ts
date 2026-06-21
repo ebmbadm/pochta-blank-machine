@@ -25,12 +25,15 @@ import {
   type LayoutModel,
   type FormRegion,
   type ParcelPreset,
+  type LabelPreset,
 } from "@/lib/layout/layoutModel";
 import { applyPreset, setFormWidth } from "@/lib/layout/presets";
+import { applyLabelPreset, setLabelSizeOnModel } from "@/lib/layout/labelPresets";
 import { loadExportFonts } from "@/lib/fonts";
 import { BASE_PATH } from "@/lib/basePath";
 import { composeA4Pdf, type BarcodeImage } from "@/lib/render/exportPdf";
-import { barcodeToPngDataUrl } from "@/lib/barcode/generateBarcode";
+import { barcodeToPngDataUrl, validateBarcodeValue } from "@/lib/barcode/generateBarcode";
+import { composeLabelPdf } from "@/lib/render/exportLabelPdf";
 
 export type EditorStatus = "empty" | "loading" | "ready" | "error";
 
@@ -60,6 +63,9 @@ export interface EditorApi {
   addBarcodeCopy(): void;
   removeBarcodeCopy(id: string): void;
   exportPdf(action: "download" | "print"): Promise<void>;
+  setLabelPreset(id: LabelPreset): void;
+  setLabelSize(widthMm: number, heightMm: number): void;
+  printLabel(action: "download" | "print"): Promise<void>;
 }
 
 const PREFS_KEY = "pochtacodder.prefs.v1";
@@ -88,6 +94,9 @@ interface Prefs {
   shipDate: boolean;
   extraBarcodesEnabled: boolean;
   barcodeWidths: number[];
+  labelPreset: LabelPreset;
+  labelWidthMm: number;
+  labelHeightMm: number;
 }
 
 function readPrefs(): Partial<Prefs> | null {
@@ -110,6 +119,9 @@ function writePrefs(model: LayoutModel): void {
       shipDate: model.shipDate.enabled,
       extraBarcodesEnabled: model.extraBarcodes.enabled,
       barcodeWidths: model.extraBarcodes.copies.map((c) => c.widthMm),
+      labelPreset: model.label.preset,
+      labelWidthMm: model.label.widthMm,
+      labelHeightMm: model.label.heightMm,
     };
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
@@ -145,6 +157,14 @@ function buildInitialModel(trackingNumber: string): LayoutModel {
             : model.extraBarcodes.copies,
       },
     };
+    if (prefs.labelPreset && prefs.labelPreset !== "custom") {
+      model = applyLabelPreset(model, prefs.labelPreset);
+    } else if (
+      typeof prefs.labelWidthMm === "number" &&
+      typeof prefs.labelHeightMm === "number"
+    ) {
+      model = setLabelSizeOnModel(model, prefs.labelWidthMm, prefs.labelHeightMm);
+    }
   } else {
     model = applyPreset(model, "L");
   }
@@ -345,6 +365,54 @@ export function useEditorState(): EditorApi {
     [updateModel],
   );
 
+  const setLabelPreset = useCallback(
+    (id: LabelPreset) => updateModel((m) => applyLabelPreset(m, id)),
+    [updateModel],
+  );
+
+  const setLabelSize = useCallback(
+    (widthMm: number, heightMm: number) =>
+      updateModel((m) => setLabelSizeOnModel(m, widthMm, heightMm)),
+    [updateModel],
+  );
+
+  const printLabel = useCallback(
+    async (action: "download" | "print") => {
+      if (!model.trackingNumber || !validateBarcodeValue(model.trackingNumber).ok) {
+        return;
+      }
+      setExporting(true);
+      try {
+        const fonts = await loadExportFonts(BASE_PATH);
+        const pdfBytes = await composeLabelPdf({
+          trackingNumber: model.trackingNumber,
+          label: { widthMm: model.label.widthMm, heightMm: model.label.heightMm },
+          fonts,
+        });
+        const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        if (action === "download") {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `pochta-label-${model.trackingNumber}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } else {
+          const w = window.open(url, "_blank");
+          if (w) w.addEventListener("load", () => w.print());
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      } catch (e) {
+        console.error(e);
+        throw e instanceof Error ? e : new Error("Ошибка при создании этикетки");
+      } finally {
+        setExporting(false);
+      }
+    },
+    [model],
+  );
+
   const exportPdf = useCallback(
     async (action: "download" | "print") => {
       const bytes = sourceBytesRef.current;
@@ -425,5 +493,8 @@ export function useEditorState(): EditorApi {
     addBarcodeCopy,
     removeBarcodeCopy,
     exportPdf,
+    setLabelPreset,
+    setLabelSize,
+    printLabel,
   };
 }
