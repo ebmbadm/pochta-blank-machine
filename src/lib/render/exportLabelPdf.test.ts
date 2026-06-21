@@ -58,13 +58,12 @@ import { composeLabelPdf } from "./exportLabelPdf";
 
 describe("composeLabelPdf (интеграция, Node)", () => {
   const regular = new Uint8Array(fs.readFileSync(path.resolve("public/fonts/DejaVuSans.ttf")));
-  const bold = new Uint8Array(fs.readFileSync(path.resolve("public/fonts/DejaVuSans-Bold.ttf")));
 
   it("делает одностраничный PDF точно в размер этикетки", async () => {
     const bytes = await composeLabelPdf({
       trackingNumber: "LS018350611RU",
       label: { widthMm: 58, heightMm: 40 },
-      fonts: { regular, bold },
+      fonts: { regular },
     });
     expect(bytes).toBeInstanceOf(Uint8Array);
     expect(bytes.length).toBeGreaterThan(1000);
@@ -81,7 +80,7 @@ describe("composeLabelPdf (интеграция, Node)", () => {
       composeLabelPdf({
         trackingNumber: "Дата",
         label: { widthMm: 58, heightMm: 40 },
-        fonts: { regular, bold },
+        fonts: { regular },
       }),
     ).rejects.toThrow();
   });

@@ -98,7 +98,8 @@ export function computeLabelLayout(
 export interface LabelComposeInput {
   trackingNumber: string;
   label: { widthMm: number; heightMm: number };
-  fonts: { regular: Uint8Array; bold: Uint8Array };
+  /** Шрифт для человекочитаемого номера (DejaVu regular). */
+  fonts: { regular: Uint8Array };
 }
 
 /**
