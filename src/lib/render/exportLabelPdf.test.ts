@@ -37,6 +37,17 @@ describe("computeLabelLayout", () => {
     expect(L.numberMm.topMm).toBeGreaterThanOrEqual(L.barcodeTopMm + L.barAreaHeightMm);
     expect(L.xDimMm).toBeCloseTo(L.barcodeWidthMm / geom.moduleCount, 6);
   });
+
+  it("ограничивает высоту штрихов и центрирует блок на вытянутой этикетке", () => {
+    const geom = captureBarcodeGeometry("LS018350611RU");
+    const L = computeLabelLayout(100, 150, geom);
+    // высота штрихов не уходит в «лапшу» на 150 мм
+    expect(L.barAreaHeightMm).toBeLessThanOrEqual(50);
+    // блок центрирован по вертикали — сверху заметный отступ от поля
+    expect(L.barcodeTopMm).toBeGreaterThan(L.marginYmm + 10);
+    // и весь блок помещается в этикетку
+    expect(L.numberMm.topMm + L.numberMm.heightMm).toBeLessThanOrEqual(150);
+  });
 });
 
 import fs from "node:fs";

@@ -67,7 +67,16 @@ export function computeLabelLayout(
 
   const numberHeightMm = clamp(innerHmm * 0.18, 2.5, 5);
   const gapMm = clamp(innerHmm * 0.04, 0.5, 2);
-  const barAreaHeightMm = Math.max(2, innerHmm - numberHeightMm - gapMm);
+  // Доступная высота под штрихи в пределах полей.
+  const barAreaAvailableMm = Math.max(2, innerHmm - numberHeightMm - gapMm);
+  // Кап высоты штрихов: растёт с шириной кода, но ограничен — иначе на вытянутых
+  // этикетках (напр. 100×150) штрихи становятся неестественно длинными.
+  const barHeightCapMm = clamp(innerWmm * 0.5, 20, 50);
+  const barAreaHeightMm = Math.min(barAreaAvailableMm, barHeightCapMm);
+
+  // Блок «штрихи + зазор + номер» центрируем по вертикали в пределах полей.
+  const contentHeightMm = barAreaHeightMm + gapMm + numberHeightMm;
+  const contentTopMm = marginYmm + Math.max(0, (innerHmm - contentHeightMm) / 2);
 
   const scaleXmmPerPx = geom.widthPx > 0 ? innerWmm / geom.widthPx : 0;
   const scaleYmmPerPx = geom.heightPx > 0 ? barAreaHeightMm / geom.heightPx : 0;
@@ -76,12 +85,12 @@ export function computeLabelLayout(
     marginXmm,
     marginYmm,
     barcodeXmm: marginXmm,
-    barcodeTopMm: marginYmm,
+    barcodeTopMm: contentTopMm,
     barcodeWidthMm: innerWmm,
     barAreaHeightMm,
     scaleXmmPerPx,
     scaleYmmPerPx,
-    numberMm: { topMm: marginYmm + barAreaHeightMm + gapMm, heightMm: numberHeightMm },
+    numberMm: { topMm: contentTopMm + barAreaHeightMm + gapMm, heightMm: numberHeightMm },
     xDimMm: geom.moduleCount > 0 ? innerWmm / geom.moduleCount : 0,
   };
 }
