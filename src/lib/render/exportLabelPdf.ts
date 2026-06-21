@@ -9,8 +9,10 @@
  * Координаты: LayoutModel/раскладка — мм, верхний левый угол, ось Y вниз;
  * pdf-lib — pt, нижний левый угол, ось Y вверх. Перевод в composeLabelPdf.
  */
-import { clamp } from "@/lib/units";
-import type { BarcodeGeometry } from "@/lib/barcode/barcodeGeometry";
+import { PDFDocument, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { clamp, mmToPt } from "@/lib/units";
+import { captureBarcodeGeometry, type BarcodeGeometry } from "@/lib/barcode/barcodeGeometry";
 
 export type Readability = "good" | "marginal" | "poor";
 
@@ -82,4 +84,68 @@ export function computeLabelLayout(
     numberMm: { topMm: marginYmm + barAreaHeightMm + gapMm, heightMm: numberHeightMm },
     xDimMm: geom.moduleCount > 0 ? innerWmm / geom.moduleCount : 0,
   };
+}
+
+export interface LabelComposeInput {
+  trackingNumber: string;
+  label: { widthMm: number; heightMm: number };
+  fonts: { regular: Uint8Array; bold: Uint8Array };
+}
+
+/**
+ * Собирает PDF одной этикетки: страница точно в размер этикетки, штрихи —
+ * вектором (drawRectangle), номер — DejaVu по центру под штрихами.
+ * Бросает Error, если трек-номер невалиден (через captureBarcodeGeometry).
+ */
+export async function composeLabelPdf(input: LabelComposeInput): Promise<Uint8Array> {
+  const { trackingNumber, label, fonts } = input;
+  const geom: BarcodeGeometry = captureBarcodeGeometry(trackingNumber);
+  const layout = computeLabelLayout(label.widthMm, label.heightMm, geom);
+
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
+  const font = await doc.embedFont(fonts.regular, { subset: true });
+
+  const pageWPt = mmToPt(label.widthMm);
+  const pageHPt = mmToPt(label.heightMm);
+  const page = doc.addPage([pageWPt, pageHPt]);
+
+  // Штрихи: px bwip-js (сверху-слева) → мм раскладки → pt pdf-lib (снизу-слева).
+  for (const b of geom.bars) {
+    const xMm = layout.barcodeXmm + b.x * layout.scaleXmmPerPx;
+    const wMm = b.w * layout.scaleXmmPerPx;
+    const topMm = layout.barcodeTopMm + b.y * layout.scaleYmmPerPx;
+    const hMm = b.h * layout.scaleYmmPerPx;
+
+    const xPt = mmToPt(xMm);
+    const wPt = mmToPt(wMm);
+    const hPt = mmToPt(hMm);
+    const yPt = pageHPt - mmToPt(topMm) - hPt;
+
+    page.drawRectangle({ x: xPt, y: yPt, width: wPt, height: hPt, color: rgb(0, 0, 0) });
+  }
+
+  // Человекочитаемый номер — по центру под штрихами.
+  // Размер шрифта подбираем так, чтобы строка влезла и по высоте, и по ширине.
+  const numberAreaHeightPt = mmToPt(layout.numberMm.heightMm);
+  const maxByWidthPt = mmToPt(layout.barcodeWidthMm);
+  let fontSize = numberAreaHeightPt * 0.85;
+  const widthAtSize = font.widthOfTextAtSize(trackingNumber, fontSize);
+  if (widthAtSize > maxByWidthPt) {
+    fontSize = fontSize * (maxByWidthPt / widthAtSize);
+  }
+  const textWidthPt = font.widthOfTextAtSize(trackingNumber, fontSize);
+  const centerXPt = pageWPt / 2;
+  // Базовая линия: верх области номера (мм, сверху) → pt снизу, минус размер шрифта.
+  const baselineYPt = pageHPt - mmToPt(layout.numberMm.topMm) - fontSize;
+
+  page.drawText(trackingNumber, {
+    x: centerXPt - textWidthPt / 2,
+    y: baselineYPt,
+    size: fontSize,
+    font,
+    color: rgb(0, 0, 0),
+  });
+
+  return doc.save();
 }

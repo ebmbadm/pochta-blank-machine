@@ -38,3 +38,40 @@ describe("computeLabelLayout", () => {
     expect(L.xDimMm).toBeCloseTo(L.barcodeWidthMm / geom.moduleCount, 6);
   });
 });
+
+import fs from "node:fs";
+import path from "node:path";
+import { PDFDocument } from "pdf-lib";
+import { mmToPt } from "@/lib/units";
+import { composeLabelPdf } from "./exportLabelPdf";
+
+describe("composeLabelPdf (интеграция, Node)", () => {
+  const regular = new Uint8Array(fs.readFileSync(path.resolve("public/fonts/DejaVuSans.ttf")));
+  const bold = new Uint8Array(fs.readFileSync(path.resolve("public/fonts/DejaVuSans-Bold.ttf")));
+
+  it("делает одностраничный PDF точно в размер этикетки", async () => {
+    const bytes = await composeLabelPdf({
+      trackingNumber: "LS018350611RU",
+      label: { widthMm: 58, heightMm: 40 },
+      fonts: { regular, bold },
+    });
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes.length).toBeGreaterThan(1000);
+
+    const reloaded = await PDFDocument.load(bytes);
+    expect(reloaded.getPageCount()).toBe(1);
+    const { width, height } = reloaded.getPage(0).getSize();
+    expect(width).toBeCloseTo(mmToPt(58), 1);
+    expect(height).toBeCloseTo(mmToPt(40), 1);
+  });
+
+  it("бросает на невалидном трек-номере", async () => {
+    await expect(
+      composeLabelPdf({
+        trackingNumber: "Дата",
+        label: { widthMm: 58, heightMm: 40 },
+        fonts: { regular, bold },
+      }),
+    ).rejects.toThrow();
+  });
+});
