@@ -34,6 +34,9 @@ function makeApi(overrides: Partial<EditorApi> = {}): EditorApi {
     addBarcodeCopy: vi.fn(),
     removeBarcodeCopy: vi.fn(),
     exportPdf,
+    setLabelPreset: vi.fn(),
+    setLabelSize: vi.fn(),
+    printLabel: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as EditorApi;
   return api;
@@ -60,5 +63,13 @@ describe("ControlsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /Скачать PDF/i }));
     expect(api.exportPdf).toHaveBeenCalledTimes(1);
     expect(api.exportPdf).toHaveBeenCalledWith("download");
+  });
+
+  it("renders the label section", () => {
+    render(<ControlsPanel api={makeApi()} />);
+    expect(screen.getByText("Этикетка (термопринтер)")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Печать этикетки/i }),
+    ).toBeInTheDocument();
   });
 });

@@ -28,6 +28,7 @@ import {
   getPreset,
 } from "@/lib/layout/presets";
 
+import { LabelSection } from "@/components/LabelSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -254,6 +255,11 @@ export function ControlsPanel({ api }: ControlsPanelProps) {
             </label>
           </div>
         </section>
+
+        <Separator />
+
+        {/* 6. ЭТИКЕТКА (ТЕРМОПРИНТЕР) */}
+        <LabelSection api={api} />
       </CardContent>
 
       <CardFooter className="sticky bottom-0 flex flex-col gap-2 border-t bg-muted/70 backdrop-blur-sm">
