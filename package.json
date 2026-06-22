@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "bash scripts/deploy-pages.sh"
+    "deploy": "bash scripts/deploy-pages.sh",
+    "print:server": "node print-server/start.mjs",
+    "app": "npm run build && node print-server/start.mjs --open"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

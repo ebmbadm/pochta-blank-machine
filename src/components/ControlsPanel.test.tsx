@@ -37,6 +37,8 @@ function makeApi(overrides: Partial<EditorApi> = {}): EditorApi {
     setLabelPreset: vi.fn(),
     setLabelSize: vi.fn(),
     printLabel: vi.fn().mockResolvedValue(undefined),
+    setPrintOption: vi.fn(),
+    printLabelDirect: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as EditorApi;
   return api;

@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * LabelSection — секция печати трек-кода на термоэтикетке. Потребляет EditorApi.
- * Пресеты размера + ручной ввод Ш×В, мини-предпросмотр (SVG-штрихкод в пропорции
- * этикетки), индикатор читаемости (X-dimension) и кнопки печати/скачивания.
- */
 import { useId, useMemo } from "react";
 import { Download, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
@@ -65,7 +60,7 @@ export function LabelSection({ api }: LabelSectionProps) {
     }
   }, [tracking, valid, model.label.widthMm]);
 
-  const handlePrint = (action: "download" | "print") => {
+  const handleBrowser = (action: "download" | "print") => {
     api.printLabel(action).catch(() => toast.error("Не удалось создать этикетку"));
   };
 
@@ -92,9 +87,7 @@ export function LabelSection({ api }: LabelSectionProps) {
 
       {/* Ручной ввод Ш×В */}
       <div className="mt-3 flex items-center gap-2">
-        <label htmlFor={widthId} className="text-xs text-muted-foreground">
-          Ш
-        </label>
+        <label htmlFor={widthId} className="text-xs text-muted-foreground">Ш</label>
         <Input
           id={widthId}
           type="number"
@@ -107,9 +100,7 @@ export function LabelSection({ api }: LabelSectionProps) {
           className="w-16 text-right font-mono tabular-nums"
         />
         <span className="text-xs text-muted-foreground">×</span>
-        <label htmlFor={heightId} className="text-xs text-muted-foreground">
-          В
-        </label>
+        <label htmlFor={heightId} className="text-xs text-muted-foreground">В</label>
         <Input
           id={heightId}
           type="number"
@@ -124,7 +115,7 @@ export function LabelSection({ api }: LabelSectionProps) {
         <span className="font-mono text-xs text-muted-foreground">мм</span>
       </div>
 
-      {/* Мини-предпросмотр в пропорции этикетки */}
+      {/* Мини-предпросмотр */}
       <div className="mt-3">
         <div
           className="mx-auto flex items-center justify-center overflow-hidden rounded-sm border border-foreground/15 bg-white p-[6%]"
@@ -158,12 +149,12 @@ export function LabelSection({ api }: LabelSectionProps) {
         </p>
       )}
 
-      {/* Кнопки */}
+      {/* Браузерная печать (всегда доступна) */}
       <div className="mt-3 flex gap-2">
         <Button
           type="button"
-          variant="default"
-          onClick={() => handlePrint("print")}
+          variant="outline"
+          onClick={() => handleBrowser("print")}
           disabled={!valid || exporting}
           className="grow"
         >
@@ -173,7 +164,7 @@ export function LabelSection({ api }: LabelSectionProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => handlePrint("download")}
+          onClick={() => handleBrowser("download")}
           disabled={!valid || exporting}
         >
           {exporting ? <Loader2 className="animate-spin" /> : <Download />}
@@ -181,9 +172,6 @@ export function LabelSection({ api }: LabelSectionProps) {
         </Button>
       </div>
 
-      <p className="mt-2 text-xs text-muted-foreground">
-        В диалоге печати выберите принтер LABEL-9X00 и масштаб 100% / реальный размер.
-      </p>
     </section>
   );
 }

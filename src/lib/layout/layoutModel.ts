@@ -17,6 +17,15 @@ export interface LabelConfig {
   heightMm: number;
 }
 
+export interface PrintOptions {
+  /** Имя CUPS-очереди; "" → выбрать системный по умолчанию в UI. */
+  printerName: string;
+  copies: number;
+  rotate: 0 | 1 | 2 | 3;
+  density: number;
+  speed: number;
+}
+
 /** Прямоугольник на листе A4 (мм, верхний левый угол). */
 export interface RectMm {
   xMm: number;
@@ -85,6 +94,8 @@ export interface LayoutModel {
   extraBarcodes: ExtraBarcodes;
   /** Настройки печати штрих-кода на термоэтикетке. */
   label: LabelConfig;
+  /** Опции прямой печати на принтер (CUPS). */
+  printOptions: PrintOptions;
 }
 
 /** Соотношение сторон бланка (высота / ширина) из найденной области. */
@@ -130,5 +141,6 @@ export function createDefaultLayout(opts: CreateLayoutOptions = {}): LayoutModel
       ],
     },
     label: { preset: "58x40", widthMm: 58, heightMm: 40 },
+    printOptions: { printerName: "", copies: 1, rotate: 0, density: 8, speed: 8 },
   };
 }

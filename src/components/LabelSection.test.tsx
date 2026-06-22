@@ -35,4 +35,5 @@ describe("LabelSection", () => {
     render(<LabelSection api={api} />);
     expect(screen.getByRole("button", { name: /Печать этикетки/i })).toBeDisabled();
   });
+
 });
