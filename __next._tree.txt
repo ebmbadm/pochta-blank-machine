@@ -1,0 +1,8 @@
+:HL["/pochta-blank-machine/_next/static/chunks/2gl11is2iq0b6.css","style"]
+:HL["/pochta-blank-machine/_next/static/media/4e1c87b7aa9e2f2f-s.p.3o02-8iknf6dl.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/pochta-blank-machine/_next/static/media/70bc3e132a0a741e-s.p.3t6q91iet4nsy.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/pochta-blank-machine/_next/static/media/b4a06a523f527a0e-s.p.3psl0_mnhzy2y.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/pochta-blank-machine/_next/static/media/b59689b1142d37ce-s.p.1bk8_xp319hr4.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/pochta-blank-machine/_next/static/media/cc545e633e20c56d-s.p.176arc174-8zp.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/pochta-blank-machine/_next/static/media/cfdfbee4d6cf0a93-s.p.1jwcpm6w583_v.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"6_WuOPzd3gwNIngisUd3j"}
