@@ -31,7 +31,7 @@ import { applyPreset, setFormWidth } from "@/lib/layout/presets";
 import { applyLabelPreset, setLabelSizeOnModel } from "@/lib/layout/labelPresets";
 import { loadExportFonts } from "@/lib/fonts";
 import { BASE_PATH } from "@/lib/basePath";
-import { composeA4Pdf, type BarcodeImage } from "@/lib/render/exportPdf";
+import { composeA4Pdf, composeFormToLabelPdf, type BarcodeImage } from "@/lib/render/exportPdf";
 import { barcodeToPngDataUrl, validateBarcodeValue } from "@/lib/barcode/generateBarcode";
 import { composeLabelPdf } from "@/lib/render/exportLabelPdf";
 
@@ -66,6 +66,7 @@ export interface EditorApi {
   setLabelPreset(id: LabelPreset): void;
   setLabelSize(widthMm: number, heightMm: number): void;
   printLabel(action: "download" | "print"): Promise<void>;
+  exportBlankLabel(action: "download" | "print"): Promise<void>;
 }
 
 const PREFS_KEY = "pochtacodder.prefs.v1";
@@ -413,6 +414,42 @@ export function useEditorState(): EditorApi {
     [model],
   );
 
+  const exportBlankLabel = useCallback(
+    async (action: "download" | "print") => {
+      const bytes = sourceBytesRef.current;
+      if (!bytes || !formRegion) return;
+      setExporting(true);
+      try {
+        const pdfBytes = await composeFormToLabelPdf({
+          sourcePdfBytes: bytes,
+          formRegion,
+          labelWidthMm: model.label.widthMm,
+          labelHeightMm: model.label.heightMm,
+        });
+        const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        if (action === "download") {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `pochta-blank-${model.trackingNumber || "label"}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } else {
+          const w = window.open(url, "_blank");
+          if (w) w.addEventListener("load", () => w.print());
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      } catch (e) {
+        console.error(e);
+        throw e instanceof Error ? e : new Error("Ошибка при создании бланка для этикетки");
+      } finally {
+        setExporting(false);
+      }
+    },
+    [formRegion, model],
+  );
+
   const exportPdf = useCallback(
     async (action: "download" | "print") => {
       const bytes = sourceBytesRef.current;
@@ -496,5 +533,6 @@ export function useEditorState(): EditorApi {
     setLabelPreset,
     setLabelSize,
     printLabel,
+    exportBlankLabel,
   };
 }

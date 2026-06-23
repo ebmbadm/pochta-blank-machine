@@ -297,3 +297,55 @@ export async function composeA4Pdf(input: ComposeInput): Promise<Uint8Array> {
   // 9. Сериализация в байты.
   return await out.save();
 }
+
+/** Входные данные для сборки PDF бланка на термоэтикетке. */
+export interface ComposeFormToLabelInput {
+  sourcePdfBytes: Uint8Array;
+  formRegion: FormRegion;
+  labelWidthMm: number;
+  labelHeightMm: number;
+}
+
+/**
+ * Собирает PDF размером этикетки (напр. 100×150 мм) с бланком,
+ * масштабированным fit-to-page с центрированием. Поля AcroForm запекаются.
+ */
+export async function composeFormToLabelPdf(
+  input: ComposeFormToLabelInput,
+): Promise<Uint8Array> {
+  const { sourcePdfBytes, formRegion, labelWidthMm, labelHeightMm } = input;
+
+  const src = await PDFDocument.load(sourcePdfBytes);
+  try {
+    src.getForm().flatten({ updateFieldAppearances: false });
+  } catch {
+    // PDF без формы — пропускаем.
+  }
+  const srcPage = src.getPage(formRegion.pageIndex);
+
+  const out = await PDFDocument.create();
+  const embedded = await out.embedPage(srcPage, {
+    left: formRegion.xPt,
+    bottom: formRegion.yPt,
+    right: formRegion.xPt + formRegion.widthPt,
+    top: formRegion.yPt + formRegion.heightPt,
+  });
+
+  const pageWPt = mmToPt(labelWidthMm);
+  const pageHPt = mmToPt(labelHeightMm);
+  const page = out.addPage([pageWPt, pageHPt]);
+
+  // Fit-to-page: масштаб по наименьшему из двух измерений.
+  const scale = Math.min(pageWPt / formRegion.widthPt, pageHPt / formRegion.heightPt);
+  const drawW = formRegion.widthPt * scale;
+  const drawH = formRegion.heightPt * scale;
+
+  page.drawPage(embedded, {
+    x: (pageWPt - drawW) / 2,
+    y: (pageHPt - drawH) / 2,
+    xScale: scale,
+    yScale: scale,
+  });
+
+  return out.save();
+}

@@ -8,9 +8,11 @@ function makeApi(overrides: Partial<EditorApi> = {}): EditorApi {
   return {
     model: createDefaultLayout({ trackingNumber: "LS018350611RU" }),
     exporting: false,
+    formRegion: null,
     setLabelPreset: vi.fn(),
     setLabelSize: vi.fn(),
     printLabel: vi.fn().mockResolvedValue(undefined),
+    exportBlankLabel: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as EditorApi;
 }

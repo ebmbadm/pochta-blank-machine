@@ -172,6 +172,44 @@ export function LabelSection({ api }: LabelSectionProps) {
         </Button>
       </div>
 
+      {/* Бланк на этикетке */}
+      <div className="mt-4 border-t pt-3">
+        <p className="stamp-label mb-2">Бланк на этикетке</p>
+        {api.formRegion ? (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                api
+                  .exportBlankLabel("print")
+                  .catch(() => toast.error("Не удалось создать PDF бланка"))
+              }
+              disabled={exporting}
+              className="grow"
+            >
+              {exporting ? <Loader2 className="animate-spin" /> : <Printer />}
+              Печать бланка
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                api
+                  .exportBlankLabel("download")
+                  .catch(() => toast.error("Не удалось создать PDF бланка"))
+              }
+              disabled={exporting}
+            >
+              {exporting ? <Loader2 className="animate-spin" /> : <Download />}
+              Скачать
+            </Button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Загрузите бланк чтобы активировать</p>
+        )}
+      </div>
+
     </section>
   );
 }
